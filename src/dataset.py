@@ -25,7 +25,10 @@ class SkinCancerDataset(Dataset):
             transform (callable, optional): Optional transform to be applied on images
             mode (str): 'train', 'val', or 'test'
         """
-        self.data_dir = data_dir
+        if isinstance(data_dir, (list, tuple)):
+            self.data_dirs = list(data_dir)
+        else:
+            self.data_dirs = [data_dir]
         # Ignore commented rows in placeholder metadata files
         self.metadata = pd.read_csv(metadata_file, comment="#")
         self.transform = transform
@@ -74,7 +77,17 @@ class SkinCancerDataset(Dataset):
         if pd.isna(image_id):
             raise ValueError(f"Missing image_id at index {idx} in metadata_file")
         img_name = str(image_id) + ".jpg"
-        img_path = os.path.join(self.data_dir, img_name)
+        img_path = None
+        for data_dir in self.data_dirs:
+            candidate_path = os.path.join(data_dir, img_name)
+            if os.path.exists(candidate_path):
+                img_path = candidate_path
+                break
+
+        if img_path is None:
+            raise FileNotFoundError(
+                f"Image not found in any data_dir for image_id '{image_id}'"
+            )
         
         # Load image
         image = Image.open(img_path).convert('RGB')
