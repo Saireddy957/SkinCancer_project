@@ -21,8 +21,18 @@ def test_dataset():
     print("="*60)
     
     # Configuration
-    data_dir = 'data/images'
-    metadata_file = 'data/metadata.csv'
+    colab_metadata = "/content/HAM10000_metadata.csv"
+    colab_images = [
+        "/content/ham10000_images_part_1",
+        "/content/ham10000_images_part_2",
+    ]
+
+    if os.path.exists(colab_metadata):
+        metadata_file = colab_metadata
+        data_dir = colab_images
+    else:
+        data_dir = "data/images"
+        metadata_file = "data/metadata.csv"
     
     # Check if files exist
     if not os.path.exists(metadata_file):
