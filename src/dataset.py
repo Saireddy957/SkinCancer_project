@@ -26,9 +26,22 @@ class SkinCancerDataset(Dataset):
             mode (str): 'train', 'val', or 'test'
         """
         self.data_dir = data_dir
-        self.metadata = pd.read_csv(metadata_file)
+        # Ignore commented rows in placeholder metadata files
+        self.metadata = pd.read_csv(metadata_file, comment="#")
         self.transform = transform
         self.mode = mode
+
+        required_columns = {"image_id", "dx", "age", "sex"}
+        missing = required_columns.difference(self.metadata.columns)
+        if missing:
+            raise ValueError(
+                f"metadata_file is missing required columns: {sorted(missing)}"
+            )
+
+        if len(self.metadata) == 0:
+            raise ValueError(
+                "metadata_file has no data rows. Please provide the HAM10000 metadata."
+            )
         
         # Binary label encoding: melanoma = 1, others = 0
         self.label_mapping = {
@@ -45,7 +58,9 @@ class SkinCancerDataset(Dataset):
         self.sex_mapping = {'male': 0, 'female': 1}
         
         # Calculate mean age for handling missing values
-        self.mean_age = self.metadata['age'].mean()
+        # Coerce age to numeric for consistent math; keep NaN for missing values
+        self.metadata["age"] = pd.to_numeric(self.metadata["age"], errors="coerce")
+        self.mean_age = self.metadata["age"].mean()
         
     def __len__(self):
         return len(self.metadata)
@@ -55,7 +70,10 @@ class SkinCancerDataset(Dataset):
             idx = idx.tolist()
         
         # Get image name and path
-        img_name = self.metadata.iloc[idx]['image_id'] + '.jpg'
+        image_id = self.metadata.iloc[idx]["image_id"]
+        if pd.isna(image_id):
+            raise ValueError(f"Missing image_id at index {idx} in metadata_file")
+        img_name = str(image_id) + ".jpg"
         img_path = os.path.join(self.data_dir, img_name)
         
         # Load image
