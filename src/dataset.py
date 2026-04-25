@@ -97,7 +97,10 @@ class SkinCancerDataset(Dataset):
             image = self.transform(image)
         
         # Get binary label: melanoma = 1, others = 0
-        diagnosis = self.metadata.iloc[idx]['dx']
+        diagnosis_raw = self.metadata.iloc[idx]["dx"]
+        diagnosis = str(diagnosis_raw).strip().lower()
+        if diagnosis not in self.label_mapping:
+            raise ValueError(f"Unknown dx label '{diagnosis_raw}' at index {idx}")
         label = self.label_mapping[diagnosis]
         
         # Get age - fill missing values with mean age

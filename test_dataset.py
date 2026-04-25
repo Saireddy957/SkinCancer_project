@@ -114,18 +114,23 @@ def test_dataset():
         
         melanoma_count = 0
         other_count = 0
-        
-        for i in range(min(100, len(dataset))):  # Check first 100 samples
+
+        for i in range(len(dataset)):
             _, _, _, label = dataset[i]
             if label.item() == 1:
                 melanoma_count += 1
             else:
                 other_count += 1
         
-        print(f"\nFirst 100 samples:")
+        print(f"\nAll samples:")
         print(f"  Melanoma: {melanoma_count}")
         print(f"  Others: {other_count}")
         print(f"  Ratio: {melanoma_count/(melanoma_count+other_count)*100:.1f}% melanoma")
+
+        print("\nDx distribution from metadata:")
+        dx_counts = dataset.metadata["dx"].astype(str).str.strip().str.lower().value_counts()
+        for dx, count in dx_counts.items():
+            print(f"  {dx}: {count}")
         
     except Exception as e:
         print(f"\n✗ Error with DataLoader: {e}")
