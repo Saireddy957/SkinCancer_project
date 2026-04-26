@@ -9,6 +9,28 @@ import seaborn as sns
 import numpy as np
 from datetime import datetime
 
+CLASS_NAMES = ['mel', 'nv', 'bkl', 'bcc', 'akiec', 'df', 'vasc']
+
+RISK_MAP = {
+    0: "High",    # mel
+    3: "Medium",  # bcc
+    4: "Medium",  # akiec
+    1: "Low",
+    2: "Low",
+    5: "Low",
+    6: "Low"
+}
+
+
+def get_risk(label, age_years):
+    """
+    Map class label and age (years) to a risk tier.
+    """
+    base = RISK_MAP[label]
+    if age_years > 60 and base != "High":
+        return "Medium"
+    return base
+
 
 def save_checkpoint(model, optimizer, epoch, accuracy, path):
     """
@@ -183,7 +205,7 @@ def calculate_class_weights(dataset, num_classes=7):
     """
     labels = []
     for i in range(len(dataset)):
-        labels.append(dataset[i]['label'].item())
+        labels.append(dataset[i][3].item())
     
     labels = np.array(labels)
     class_counts = np.bincount(labels, minlength=num_classes)

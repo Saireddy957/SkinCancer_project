@@ -14,7 +14,7 @@ from torchvision import transforms
 class SkinCancerDataset(Dataset):
     """
     Custom Dataset for loading HAM10000 images and metadata.
-    Binary classification: melanoma = 1, others = 0
+    Multiclass classification across 7 lesion types
     """
     
     def __init__(self, data_dir, metadata_file, transform=None, mode='train'):
@@ -46,15 +46,15 @@ class SkinCancerDataset(Dataset):
                 "metadata_file has no data rows. Please provide the HAM10000 metadata."
             )
         
-        # Binary label encoding: melanoma = 1, others = 0
+        # Multiclass label encoding
         self.label_mapping = {
-            'mel': 1,    # Melanoma
-            'akiec': 0,  # Actinic keratoses
-            'bcc': 0,    # Basal cell carcinoma
-            'bkl': 0,    # Benign keratosis
-            'df': 0,     # Dermatofibroma
-            'nv': 0,     # Melanocytic nevi
-            'vasc': 0    # Vascular lesions
+            'mel': 0,
+            'nv': 1,
+            'bkl': 2,
+            'bcc': 3,
+            'akiec': 4,
+            'df': 5,
+            'vasc': 6
         }
         
         # Gender encoding: male=0, female=1
@@ -96,11 +96,10 @@ class SkinCancerDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         
-        # Get binary label: melanoma = 1, others = 0
-        diagnosis_raw = self.metadata.iloc[idx]["dx"]
-        diagnosis = str(diagnosis_raw).strip().lower()
+        # Get multiclass label
+        diagnosis = str(self.metadata.iloc[idx]["dx"]).strip().lower()
         if diagnosis not in self.label_mapping:
-            raise ValueError(f"Unknown dx label '{diagnosis_raw}' at index {idx}")
+            raise ValueError(f"Unknown dx label '{diagnosis}' at index {idx}")
         label = self.label_mapping[diagnosis]
         
         # Get age - fill missing values with mean age

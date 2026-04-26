@@ -16,7 +16,7 @@ from model import get_model
 from utils import save_checkpoint, load_checkpoint, plot_training_history
 
 
-def train_one_epoch(model, dataloader, criterion, optimizer, device, model_type, num_classes):
+def train_one_epoch(model, dataloader, criterion, optimizer, device):
     """
     Train for one epoch
     
@@ -37,18 +37,10 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device, model_type,
         # Zero gradients
         optimizer.zero_grad()
         
+        labels = labels.to(device)
+
         # Forward pass
-        if model_type == 'multimodal':
-            metadata = torch.stack([ages, genders], dim=1)
-            outputs = model(images, metadata)
-        else:
-            outputs = model(images)
-
-        if num_classes == 1:
-            labels = labels.float().to(device).view(-1, 1)
-        else:
-            labels = labels.to(device)
-
+        outputs = model(images, ages, genders)
         loss = criterion(outputs, labels)
         
         # Backward pass
@@ -57,15 +49,9 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device, model_type,
         
         # Statistics
         running_loss += loss.item() * images.size(0)
-        if num_classes == 1:
-            probs = torch.sigmoid(outputs)
-            predicted = (probs >= 0.5).long().view(-1)
-            all_preds.extend(predicted.cpu().numpy())
-            all_labels.extend(labels.view(-1).cpu().numpy())
-        else:
-            _, predicted = torch.max(outputs, 1)
-            all_preds.extend(predicted.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
+        _, predicted = torch.max(outputs, 1)
+        all_preds.extend(predicted.cpu().numpy())
+        all_labels.extend(labels.cpu().numpy())
     
     epoch_loss = running_loss / len(dataloader.dataset)
     epoch_acc = accuracy_score(all_labels, all_preds)
@@ -73,7 +59,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device, model_type,
     return epoch_loss, epoch_acc
 
 
-def validate(model, dataloader, criterion, device, model_type, num_classes):
+def validate(model, dataloader, criterion, device):
     """
     Validate the model
     
@@ -93,31 +79,17 @@ def validate(model, dataloader, criterion, device, model_type, num_classes):
             ages = ages.to(device)
             genders = genders.to(device)
             
+            labels = labels.to(device)
+
             # Forward pass
-            if model_type == 'multimodal':
-                metadata = torch.stack([ages, genders], dim=1)
-                outputs = model(images, metadata)
-            else:
-                outputs = model(images)
-
-            if num_classes == 1:
-                labels = labels.float().to(device).view(-1, 1)
-            else:
-                labels = labels.to(device)
-
+            outputs = model(images, ages, genders)
             loss = criterion(outputs, labels)
             
             # Statistics
             running_loss += loss.item() * images.size(0)
-            if num_classes == 1:
-                probs = torch.sigmoid(outputs)
-                predicted = (probs >= 0.5).long().view(-1)
-                all_preds.extend(predicted.cpu().numpy())
-                all_labels.extend(labels.view(-1).cpu().numpy())
-            else:
-                _, predicted = torch.max(outputs, 1)
-                all_preds.extend(predicted.cpu().numpy())
-                all_labels.extend(labels.cpu().numpy())
+            _, predicted = torch.max(outputs, 1)
+            all_preds.extend(predicted.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
     
     val_loss = running_loss / len(dataloader.dataset)
     val_acc = accuracy_score(all_labels, all_preds)
@@ -181,7 +153,7 @@ def train(config):
     ).to(device)
     
     # Loss and optimizer
-    criterion = nn.BCEWithLogitsLoss() if config['num_classes'] == 1 else nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', patience=3, factor=0.1
@@ -206,9 +178,7 @@ def train(config):
             train_loader,
             criterion,
             optimizer,
-            device,
-            config['model_type'],
-            config['num_classes']
+            device
         )
         
         # Validate
@@ -216,9 +186,7 @@ def train(config):
             model,
             val_loader,
             criterion,
-            device,
-            config['model_type'],
-            config['num_classes']
+            device
         )
 
         # Update scheduler
