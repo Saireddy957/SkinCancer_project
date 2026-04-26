@@ -48,8 +48,8 @@ Examples:
     
     # Data arguments
     parser.add_argument(
-        '--data_dir', type=str, default='data/images',
-        help='Directory containing images (default: data/images)'
+        '--data_dir', type=str, default='/content/images',
+        help='Directory containing images (default: /content/images)'
     )
     parser.add_argument(
         '--metadata_file', type=str, default='data/metadata.csv',
@@ -205,7 +205,7 @@ def quick_train():
     Quick training function with default parameters (for direct import usage)
     """
     config = {
-        'data_dir': 'data/images',
+        'data_dir': '/content/images',
         'metadata_file': 'data/metadata.csv',
         'save_dir': 'models',
         'model_type': 'multimodal',
@@ -231,7 +231,7 @@ def quick_evaluate(model_path='models/best_model.pth'):
     Quick evaluation function (for direct import usage)
     """
     config = {
-        'data_dir': 'data/images',
+        'data_dir': '/content/images',
         'metadata_file': 'data/metadata.csv',
         'model_path': model_path,
         'results_dir': 'results',

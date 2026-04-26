@@ -248,7 +248,7 @@ def evaluate(config):
 if __name__ == "__main__":
     # Evaluation configuration
     config = {
-        'data_dir': '../data/images',
+        'data_dir': '/content/images',
         'metadata_file': '../data/metadata.csv',
         'model_path': '../models/best_model.pth',
         'results_dir': '../results',

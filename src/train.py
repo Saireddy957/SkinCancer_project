@@ -218,7 +218,7 @@ def train(config):
 if __name__ == "__main__":
     # Training configuration
     config = {
-        'data_dir': '../data/images',
+        'data_dir': '/content/images',
         'metadata_file': '../data/metadata.csv',
         'save_dir': '../models',
         'model_type': 'multimodal',  # 'multimodal' or 'image_only'
