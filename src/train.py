@@ -16,7 +16,7 @@ from model import get_model
 from utils import save_checkpoint, load_checkpoint, plot_training_history
 
 
-def train_one_epoch(model, dataloader, criterion, optimizer, device):
+def train_one_epoch(model, dataloader, criterion, optimizer, device, model_type, num_classes):
     """
     Train for one epoch
     
@@ -29,16 +29,26 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
     all_preds = []
     all_labels = []
     
-    for batch in tqdm(dataloader, desc="Training"):
-        images = batch['image'].to(device)
-        metadata = batch['metadata'].to(device)
-        labels = batch['label'].to(device)
+    for images, ages, genders, labels in tqdm(dataloader, desc="Training"):
+        images = images.to(device)
+        ages = ages.to(device)
+        genders = genders.to(device)
         
         # Zero gradients
         optimizer.zero_grad()
         
         # Forward pass
-        outputs = model(images, metadata)
+        if model_type == 'multimodal':
+            metadata = torch.stack([ages, genders], dim=1)
+            outputs = model(images, metadata)
+        else:
+            outputs = model(images)
+
+        if num_classes == 1:
+            labels = labels.float().to(device).view(-1, 1)
+        else:
+            labels = labels.to(device)
+
         loss = criterion(outputs, labels)
         
         # Backward pass
@@ -47,9 +57,15 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
         
         # Statistics
         running_loss += loss.item() * images.size(0)
-        _, predicted = torch.max(outputs, 1)
-        all_preds.extend(predicted.cpu().numpy())
-        all_labels.extend(labels.cpu().numpy())
+        if num_classes == 1:
+            probs = torch.sigmoid(outputs)
+            predicted = (probs >= 0.5).long().view(-1)
+            all_preds.extend(predicted.cpu().numpy())
+            all_labels.extend(labels.view(-1).cpu().numpy())
+        else:
+            _, predicted = torch.max(outputs, 1)
+            all_preds.extend(predicted.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
     
     epoch_loss = running_loss / len(dataloader.dataset)
     epoch_acc = accuracy_score(all_labels, all_preds)
@@ -57,7 +73,7 @@ def train_one_epoch(model, dataloader, criterion, optimizer, device):
     return epoch_loss, epoch_acc
 
 
-def validate(model, dataloader, criterion, device):
+def validate(model, dataloader, criterion, device, model_type, num_classes):
     """
     Validate the model
     
@@ -72,20 +88,36 @@ def validate(model, dataloader, criterion, device):
     all_labels = []
     
     with torch.no_grad():
-        for batch in tqdm(dataloader, desc="Validation"):
-            images = batch['image'].to(device)
-            metadata = batch['metadata'].to(device)
-            labels = batch['label'].to(device)
+        for images, ages, genders, labels in tqdm(dataloader, desc="Validation"):
+            images = images.to(device)
+            ages = ages.to(device)
+            genders = genders.to(device)
             
             # Forward pass
-            outputs = model(images, metadata)
+            if model_type == 'multimodal':
+                metadata = torch.stack([ages, genders], dim=1)
+                outputs = model(images, metadata)
+            else:
+                outputs = model(images)
+
+            if num_classes == 1:
+                labels = labels.float().to(device).view(-1, 1)
+            else:
+                labels = labels.to(device)
+
             loss = criterion(outputs, labels)
             
             # Statistics
             running_loss += loss.item() * images.size(0)
-            _, predicted = torch.max(outputs, 1)
-            all_preds.extend(predicted.cpu().numpy())
-            all_labels.extend(labels.cpu().numpy())
+            if num_classes == 1:
+                probs = torch.sigmoid(outputs)
+                predicted = (probs >= 0.5).long().view(-1)
+                all_preds.extend(predicted.cpu().numpy())
+                all_labels.extend(labels.view(-1).cpu().numpy())
+            else:
+                _, predicted = torch.max(outputs, 1)
+                all_preds.extend(predicted.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
     
     val_loss = running_loss / len(dataloader.dataset)
     val_acc = accuracy_score(all_labels, all_preds)
@@ -149,7 +181,7 @@ def train(config):
     ).to(device)
     
     # Loss and optimizer
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.BCEWithLogitsLoss() if config['num_classes'] == 1 else nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', patience=3, factor=0.5, verbose=True
@@ -170,12 +202,23 @@ def train(config):
         
         # Train
         train_loss, train_acc = train_one_epoch(
-            model, train_loader, criterion, optimizer, device
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            device,
+            config['model_type'],
+            config['num_classes']
         )
         
         # Validate
         val_loss, val_acc, val_f1 = validate(
-            model, val_loader, criterion, device
+            model,
+            val_loader,
+            criterion,
+            device,
+            config['model_type'],
+            config['num_classes']
         )
         
         # Update scheduler
