@@ -22,10 +22,7 @@ def test_dataset():
     
     # Configuration
     colab_metadata = "/content/HAM10000_metadata.csv"
-    colab_images = [
-        "/content/ham10000_images_part_1",
-        "/content/ham10000_images_part_2",
-    ]
+    colab_images = "/content/images"
 
     if os.path.exists(colab_metadata):
         metadata_file = colab_metadata
