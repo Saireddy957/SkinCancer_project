@@ -262,7 +262,7 @@ if __name__ == "__main__":
     # Training configuration
     config = {
         'data_dir': '/content/images',
-        'metadata_file': '../data/metadata.csv',
+        'metadata_file': '/content/cleaned_metadata.csv',
         'save_dir': '../models',
         'model_type': 'multimodal',  # 'multimodal' or 'image_only'
         'backbone': 'resnet50',       # 'resnet50', 'efficientnet_b0', 'mobilenet_v2'

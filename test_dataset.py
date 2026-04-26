@@ -21,7 +21,7 @@ def test_dataset():
     print("="*60)
     
     # Configuration
-    colab_metadata = "/content/HAM10000_metadata.csv"
+    colab_metadata = "/content/cleaned_metadata.csv"
     colab_images = "/content/images"
 
     if os.path.exists(colab_metadata):

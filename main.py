@@ -52,8 +52,8 @@ Examples:
         help='Directory containing images (default: /content/images)'
     )
     parser.add_argument(
-        '--metadata_file', type=str, default='data/metadata.csv',
-        help='Path to metadata CSV file (default: data/metadata.csv)'
+        '--metadata_file', type=str, default='/content/cleaned_metadata.csv',
+        help='Path to metadata CSV file (default: /content/cleaned_metadata.csv)'
     )
     
     # Model arguments
@@ -206,7 +206,7 @@ def quick_train():
     """
     config = {
         'data_dir': '/content/images',
-        'metadata_file': 'data/metadata.csv',
+        'metadata_file': '/content/cleaned_metadata.csv',
         'save_dir': 'models',
         'model_type': 'multimodal',
         'backbone': 'resnet50',
@@ -232,7 +232,7 @@ def quick_evaluate(model_path='models/best_model.pth'):
     """
     config = {
         'data_dir': '/content/images',
-        'metadata_file': 'data/metadata.csv',
+        'metadata_file': '/content/cleaned_metadata.csv',
         'model_path': model_path,
         'results_dir': 'results',
         'model_type': 'multimodal',

@@ -202,7 +202,7 @@ def run_aco_optimization():
     # Base configuration
     base_config = {
         'data_dir': '/content/images',
-        'metadata_file': '../data/metadata.csv',
+        'metadata_file': '/content/cleaned_metadata.csv',
         'save_dir': '../models/aco',
         'model_type': 'multimodal',
         'num_classes': 7,
