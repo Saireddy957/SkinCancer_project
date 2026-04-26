@@ -184,7 +184,7 @@ def train(config):
     criterion = nn.BCEWithLogitsLoss() if config['num_classes'] == 1 else nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config['learning_rate'])
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, mode='min', patience=3, factor=0.5, verbose=True
+        optimizer, mode='min', patience=3, factor=0.1
     )
     
     # Training loop
@@ -220,9 +220,10 @@ def train(config):
             config['model_type'],
             config['num_classes']
         )
-        
+
         # Update scheduler
         scheduler.step(val_loss)
+        
         
         # Save history
         history['train_loss'].append(train_loss)
