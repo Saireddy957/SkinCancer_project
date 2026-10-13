@@ -1,0 +1,5 @@
+Model,Input,Binary Accuracy (%),Binary F1 (%),Lesion Accuracy (%),Lesion F1 (%)
+EfficientNet-B0,Image,87.8,88.03,81.5,82.07
+DenseNet121,Image,87.67,87.94,82.44,81.05
+Multimodal EfficientNet-B0,Image + Age + Gender,89.34,89.43,81.43,82.17
+Multimodal DenseNet121,Image + Age + Gender,88.47,88.75,84.12,84.57
