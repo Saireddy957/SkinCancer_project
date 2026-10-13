@@ -1,234 +1,190 @@
-# Skin Cancer Detection using Multimodal Deep Learning
+# Multimodal Skin Lesion Classification Using Deep Learning
 
-A deep learning project for detecting and classifying skin cancer lesions using the HAM10000 dataset. This project implements a **multimodal CNN** that combines image features with patient metadata (age, sex, localization) for improved classification accuracy.
+A deep learning project that classifies skin lesions using the **HAM10000 dataset**. This project compares image-based CNN models with multimodal models that combine dermoscopic images and patient metadata to predict seven lesion categories and classify lesions into two project-defined groups: benign and malignant.
 
 ## 🎯 Project Overview
 
-This project classifies skin lesions into 7 categories:
-- **akiec**: Actinic keratoses and intraepithelial carcinoma
-- **bcc**: Basal cell carcinoma
-- **bkl**: Benign keratosis-like lesions
-- **df**: Dermatofibroma
-- **mel**: Melanoma
-- **nv**: Melanocytic nevi
-- **vasc**: Vascular lesions
+The project evaluates four deep learning models to study whether combining patient metadata with image features can improve classification performance.
+
+### Lesion Categories
+
+The models classify lesions into seven categories:
+
+| Label | Description |
+|---|---|
+| `akiec` | Actinic keratoses and intraepithelial carcinoma |
+| `bcc` | Basal cell carcinoma |
+| `bkl` | Benign keratosis-like lesions |
+| `df` | Dermatofibroma |
+| `mel` | Melanoma |
+| `nv` | Melanocytic nevi |
+| `vasc` | Vascular lesions |
+
+The binary classification experiment groups `nv`, `bkl`, `df`, and `vasc` as benign, and `mel`, `bcc`, and `akiec` as malignant for this project. This is a simplified experimental grouping, not a definitive clinical diagnosis.
 
 ## ✨ Features
 
-- **Multimodal Architecture**: Combines CNN image features with patient metadata
-- **Multiple Backbone Support**: ResNet50, EfficientNet-B0, MobileNet-V2
-- **Bio-inspired Optimization**: Ant Colony Optimization (ACO) for hyperparameter tuning
-- **Comprehensive Evaluation**: Confusion matrix, ROC curves, classification reports
-- **Data Augmentation**: Random flips, rotations, color jitter
-- **Transfer Learning**: Pretrained ImageNet weights
+- **Four-model comparison:** Evaluates EfficientNet-B0 and DenseNet121 using image-only and multimodal approaches.
+- **Multimodal learning:** Combines dermoscopic image features with patient age and gender.
+- **Transfer learning:** Uses CNN architectures pretrained on ImageNet.
+- **Multitask classification:** Predicts both seven-class lesion categories and two-class labels.
+- **Image preprocessing:** Resizes images to 224 × 224 pixels and applies ImageNet normalization.
+- **Data augmentation:** Uses horizontal flips, vertical flips, and random rotations during training.
+- **Lesion-level data splitting:** Separates lesions across training, validation, and test sets to reduce data leakage from repeated images of the same lesion.
+- **Model evaluation:** Compares accuracy and F1-score for both classification tasks.
+
+## 🧠 Models Compared
+
+| Model | Input |
+|---|---|
+| EfficientNet-B0 | Dermoscopic image |
+| DenseNet121 | Dermoscopic image |
+| Multimodal EfficientNet-B0 | Image + age + gender |
+| Multimodal DenseNet121 | Image + age + gender |
+
+### Architecture Overview
+
+**Image-only models**
+
+Dermoscopic image → CNN backbone → Classification heads → Seven-class and binary predictions
+
+**Multimodal models**
+
+Dermoscopic image → CNN backbone ─┐  
+Patient age and gender → Metadata network ─┴→ Feature fusion → Classification heads
+
+The image branch extracts visual features, while the metadata branch processes patient information. The fused representation is used for both classification tasks.
+
+## 📊 Experimental Results
+
+The following table reports the measured results from the project experiments.
+
+| Model | Binary Accuracy | Binary F1 | Lesion Accuracy | Lesion F1 |
+|---|---:|---:|---:|---:|
+| EfficientNet-B0 | 87.80% | 88.03% | 81.50% | 82.07% |
+| DenseNet121 | 87.67% | 87.94% | 82.44% | 81.05% |
+| Multimodal EfficientNet-B0 | 89.34% | 89.43% | 81.43% | 82.17% |
+| Multimodal DenseNet121 | 88.47% | 88.75% | 84.12% | 84.57% |
+
+### Key Observations
+
+- **Best binary classification accuracy:** Multimodal EfficientNet-B0 achieved 89.34%.
+- **Best seven-class lesion accuracy:** Multimodal DenseNet121 achieved 84.12%.
+- **Best seven-class lesion F1-score:** Multimodal DenseNet121 achieved 84.57%.
+- The results show that the impact of adding metadata differs between the two CNN architectures and classification tasks.
 
 ## 📁 Project Structure
 
-```
-SkinCancer_Detection/
-│
+```text
+SkinCancer_project/
 ├── data/
-│   ├── images/              # HAM10000 images
-│   └── metadata.csv         # HAM10000 metadata file
-│
-├── notebooks/               # Jupyter notebooks for experiments
-│
+│   └── metadata.csv
+├── models/
+├── notebooks/
+│   └── skincancerproject.ipynb
+├── results/
+│   ├── model_comparison.csv
+│   └── model_comparison.md
 ├── src/
-│   ├── dataset.py           # Custom Dataset class
-│   ├── model.py             # Multimodal CNN model
-│   ├── train.py             # Training script
-│   ├── evaluate.py          # Evaluation script
-│   ├── aco.py               # Ant Colony Optimization
-│   └── utils.py             # Helper functions
-│
-├── models/                  # Saved trained models
-│
-├── results/                 # Evaluation results and plots
-│
-├── requirements.txt         # Python dependencies
-├── README.md                # Project documentation
-└── main.py                  # Main entry point
+│   ├── dataset.py
+│   ├── model.py
+│   ├── models.py
+│   ├── train.py
+│   ├── evaluate.py
+│   └── utils.py
+├── main.py
+├── requirements.txt
+├── test_dataset.py
+├── test_model.py
+├── .gitignore
+└── README.md
 ```
+
+The repository may contain additional source files. Check the implementation before using individual scripts. The dataset images and trained model checkpoints are not necessarily included in the repository.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Python 3.8+
-- CUDA-compatible GPU (recommended)
-- 8GB+ RAM
+- Python 3.10 or a compatible version for the installed dependencies
+- PyTorch and Torchvision
+- A CUDA-compatible GPU is recommended for training
+- Sufficient disk space for the HAM10000 dataset
 
-### Installation
-
-1. **Clone the repository** (or download the project):
-   ```bash
-   cd SkinCancer_Detection
-   ```
-
-2. **Create a virtual environment** (recommended):
-   ```bash
-   python -m venv venv
-   
-   # On Windows
-   venv\Scripts\activate
-   
-   # On Linux/Mac
-   source venv/bin/activate
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Dataset Setup
-
-1. **Download the HAM10000 dataset**:
-   - Dataset: [Kaggle - HAM10000](https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000)
-   - You need both image parts (HAM10000_images_part_1 and HAM10000_images_part_2)
-   - And the metadata CSV file
-
-2. **Place the data**:
-   - Extract all images to `data/images/`
-   - Place `HAM10000_metadata.csv` as `data/metadata.csv`
-
-## 📊 Usage
-
-### Training
-
-**Option 1: Using the main entry point**
-```bash
-python main.py --mode train
-```
-
-**Option 2: Direct training script**
-```bash
-cd src
-python train.py
-```
-
-**Custom training configuration**:
-```python
-config = {
-    'data_dir': '../data/images',
-    'metadata_file': '../data/metadata.csv',
-    'model_type': 'multimodal',  # or 'image_only'
-    'backbone': 'resnet50',       # or 'efficientnet_b0', 'mobilenet_v2'
-    'batch_size': 32,
-    'num_epochs': 30,
-    'learning_rate': 0.001
-}
-```
-
-### Evaluation
+### 1. Clone the Repository
 
 ```bash
-python main.py --mode evaluate --model_path models/best_model.pth
+git clone https://github.com/Saireddy957/SkinCancer_project.git
+cd SkinCancer_project
 ```
 
-Or directly:
-```bash
-cd src
-python evaluate.py
-```
-
-### Hyperparameter Optimization with ACO
+### 2. Create a Virtual Environment
 
 ```bash
-python main.py --mode optimize
+python -m venv venv
 ```
 
-Or:
+On Windows:
+
 ```bash
-cd src
-python aco.py
+venv\Scripts\activate
 ```
 
-## 🏗️ Model Architecture
+On Linux or macOS:
 
-### Multimodal CNN
-
-```
-Input Image (224x224x3) ──┐
-                          │
-                          ├──> CNN Backbone ──> Image Features (2048-dim)
-                          │    (ResNet50)                   │
-                          │                                 │
-Metadata (age, sex) ──────┤                                 ├──> Fusion ──> Classifier ──> 7 Classes
-                          │                                 │      Network
-                          └─────> MLP ──> Metadata Features (16-dim)
+```bash
+source venv/bin/activate
 ```
 
-### Key Components
+### 3. Install Dependencies
 
-1. **Image Branch**: 
-   - Pretrained CNN (ResNet50/EfficientNet/MobileNet)
-   - Extracts visual features from dermoscopic images
+```bash
+pip install -r requirements.txt
+```
 
-2. **Metadata Branch**:
-   - Multi-layer perceptron (MLP)
-   - Processes patient metadata (age, sex, localization)
+### 4. Download the Dataset
 
-3. **Fusion Layer**:
-   - Concatenates image and metadata features
-   - Final classification through fully connected layers
+Download HAM10000 from Kaggle:
 
-## 📈 Results
+https://www.kaggle.com/datasets/kmader/skin-cancer-mnist-ham10000
 
-Expected performance metrics on HAM10000:
+Obtain the image files and metadata CSV. Arrange them according to the paths expected by the notebook or training scripts. The metadata must include the image identifier, lesion identifier, diagnosis label, age, and sex fields used by preprocessing.
 
-| Metric | Score |
-|--------|-------|
-| Accuracy | ~85-90% |
-| Weighted F1 | ~0.85 |
-| AUC-ROC | ~0.90+ |
+**Note:** The repository's metadata file may be a placeholder. Verify that it contains the actual dataset records before running the experiments. The image files are not included in this repository by default.
 
-*Note: Results may vary based on hyperparameters and data split*
+## 📓 Experiments and Results
 
-## 🔧 Key Files Description
+The `notebooks/` directory contains the research notebook used for image-based model experiments. The multimodal experiments are associated with the Kaggle notebook used during development.
 
-- **`dataset.py`**: Custom PyTorch Dataset for loading images and metadata
-- **`model.py`**: Neural network architectures (multimodal and image-only)
-- **`train.py`**: Training loop with validation
-- **`evaluate.py`**: Model evaluation with metrics and visualizations
-- **`aco.py`**: Ant Colony Optimization for hyperparameter tuning
-- **`utils.py`**: Utility functions (checkpointing, plotting, etc.)
-- **`main.py`**: Unified entry point for all operations
+The `results/` directory contains the model comparison results in CSV and Markdown formats.
 
-## 🧪 Experiments
+For reproducibility, use the same preprocessing, lesion-level data split, label mapping, and evaluation procedure as the reported experiments.
 
-The `notebooks/` directory can be used for:
-- Data exploration and visualization
-- Model prototyping
-- Results analysis
-- Custom experiments
+## 🛠️ Technologies Used
+
+- **Language:** Python
+- **Deep Learning:** PyTorch, Torchvision
+- **Models:** EfficientNet-B0, DenseNet121
+- **Data Processing:** NumPy, Pandas
+- **Evaluation:** Scikit-learn
+- **Visualization:** Matplotlib and related plotting tools
+- **Dataset:** HAM10000
 
 ## 📚 References
 
-1. HAM10000 Dataset:
-   - Tschandl, P., Rosendahl, C. & Kittler, H. The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions. Sci. Data 5, 180161 (2018).
+1. Tschandl, P., Rosendahl, C., and Kittler, H. “The HAM10000 dataset, a large collection of multi-source dermatoscopic images of common pigmented skin lesions.” *Scientific Data*, 5, 180161 (2018).
+2. Esteva, A., et al. “Dermatologist-level classification of skin cancer with deep neural networks.” *Nature*, 542, 115–118 (2017).
 
-2. Deep Learning for Skin Cancer:
-   - Esteva, A., et al. "Dermatologist-level classification of skin cancer with deep neural networks." Nature 542.7639 (2017): 115-118.
+## ⚠️ Disclaimer
 
-## 🤝 Contributing
+This project is intended for educational and research purposes only. Its predictions are not a substitute for professional medical evaluation, histopathology, or advice from a qualified healthcare professional. The binary labels used in this experiment are simplified research groupings and should not be interpreted as definitive clinical diagnoses.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 👤 Author
 
-## 📝 License
+**Sai Reddy**
 
-This project is for educational purposes. Please cite the HAM10000 dataset if you use it in your research.
-
-## 🙏 Acknowledgments
-
-- HAM10000 dataset creators
-- PyTorch team
-- Open-source deep learning community
-
-## 📧 Contact
-
-For questions or feedback, please open an issue in the repository.
+GitHub: https://github.com/Saireddy957
 
 ---
 
-**Happy Coding! 🎉**
+If you find this project useful, consider starring the repository.
