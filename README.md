@@ -78,19 +78,21 @@ The following table reports the measured results from the project experiments.
 ```text
 SkinCancer_project/
 ├── data/
+│   ├── images/
 │   └── metadata.csv
 ├── models/
 ├── notebooks/
-│   └── skincancerproject.ipynb
+│   ├── skincancerproject.ipynb
+│   └── skincancerproject (2).ipynb
 ├── results/
 │   ├── model_comparison.csv
 │   └── model_comparison.md
 ├── src/
+│   ├── aco.py
 │   ├── dataset.py
-│   ├── model.py
-│   ├── models.py
-│   ├── train.py
 │   ├── evaluate.py
+│   ├── model.py
+│   ├── train.py
 │   └── utils.py
 ├── main.py
 ├── requirements.txt
